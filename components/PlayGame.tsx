@@ -1,16 +1,18 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 import Image from "next/image"
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft} from "lucide-react"
 import { Header } from "@/components/Header"
+import { PlayerProgressPanel } from "@/components/PlayerProgressPanel"
 import Share from "./icons/Share"
 import Replay from "./icons/Replay"
 import { HuntCards } from "./HuntCards"
 import { get_hunt, get_clue_info } from "@/lib/contracts/hunt"
+import { toast } from "sonner"
 
 
 interface Hunt {
@@ -35,10 +37,12 @@ interface PlayGameProps {
 export function PlayGame({ hunts: huntsProp, gameName, onExit, onGameComplete, gameCompleteModal, huntId }: PlayGameProps) {
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [score, setScore] = useState(0)
+  const [solvedCount, setSolvedCount] = useState(0)
   const [fetchedClues, setFetchedClues] = useState<Hunt[] | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [solvedClues, setSolvedClues] = useState<Set<number>>(new Set())
+  const [fetchAttempt, setFetchAttempt] = useState(0)
 
   useEffect(() => {
     if (huntId == null) return
@@ -46,6 +50,11 @@ export function PlayGame({ hunts: huntsProp, gameName, onExit, onGameComplete, g
     let cancelled = false
     setLoading(true)
     setError(null)
+    setFetchedClues(null)
+    setCurrentCardIndex(0)
+    setScore(0)
+    setSolvedCount(0)
+    setSolvedClues(new Set())
 
     async function fetchClues() {
       try {
@@ -67,7 +76,9 @@ export function PlayGame({ hunts: huntsProp, gameName, onExit, onGameComplete, g
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to fetch clues")
+          const message = err instanceof Error ? err.message : "Failed to fetch clues"
+          setError(message)
+          toast.error(message)
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -76,9 +87,10 @@ export function PlayGame({ hunts: huntsProp, gameName, onExit, onGameComplete, g
 
     fetchClues()
     return () => { cancelled = true }
-  }, [huntId])
+  }, [huntId, fetchAttempt])
 
-  const hunts = fetchedClues ?? huntsProp
+  const hunts = huntId != null ? fetchedClues ?? [] : fetchedClues ?? huntsProp
+  const hasHunts = hunts.length > 0
 
   const handleScoreUpdate = (points: number) => {
     setScore((prev) => prev + points)
@@ -97,16 +109,45 @@ export function PlayGame({ hunts: huntsProp, gameName, onExit, onGameComplete, g
     }
   }
 
-  if (error) {
+  if (loading && !hasHunts) {
     return (
       <div className="min-h-screen bg-gradient-to-tr from-blue-100 bg-purple-100 to-[#f9f9ff] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-500 text-lg mb-4">{error}</p>
+        <div className="text-center rounded-3xl bg-white px-8 py-10 shadow-lg">
+          <p className="text-slate-700 text-lg mb-4">Loading clues...</p>
           <Button variant="ghost" onClick={onExit}>Go Back</Button>
         </div>
       </div>
     )
   }
+
+  if (error && !hasHunts) {
+    return (
+      <div className="min-h-screen bg-gradient-to-tr from-blue-100 bg-purple-100 to-[#f9f9ff] flex items-center justify-center">
+        <div className="text-center rounded-3xl bg-white px-8 py-10 shadow-lg">
+          <p className="text-red-500 text-lg mb-4">{error}</p>
+          <div className="flex items-center justify-center gap-3">
+            {huntId != null && (
+              <Button onClick={() => setFetchAttempt((current) => current + 1)}>Retry</Button>
+            )}
+            <Button variant="ghost" onClick={onExit}>Go Back</Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!hasHunts) {
+    return (
+      <div className="min-h-screen bg-gradient-to-tr from-blue-100 bg-purple-100 to-[#f9f9ff] flex items-center justify-center">
+        <div className="text-center rounded-3xl bg-white px-8 py-10 shadow-lg">
+          <p className="text-slate-700 text-lg mb-4">No clues available for this hunt yet.</p>
+          <Button variant="ghost" onClick={onExit}>Go Back</Button>
+        </div>
+      </div>
+    )
+  }
+
+  const activeHunt = hunts[currentCardIndex]
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-blue-100 bg-purple-100 to-[#f9f9ff]">
@@ -179,7 +220,7 @@ export function PlayGame({ hunts: huntsProp, gameName, onExit, onGameComplete, g
             {/* Center - Current active card */}
             <div className="flex justify-center mx-auto z-10">
               <HuntCards
-                hunts={[hunts[currentCardIndex]]}
+                hunts={activeHunt ? [activeHunt] : []}
                 isActive={true}
                 isLoading={loading}
                 huntId={huntId}
