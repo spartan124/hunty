@@ -6,6 +6,8 @@ export type ClueInfo = {
   id: number
   question: string
   points: number
+  hint?: string
+  hintCost?: number
 }
 
 export type HuntInfo = {
@@ -251,7 +253,9 @@ export async function addClue(
   huntId: number,
   question: string,
   answer: string,
-  points: number
+  points: number,
+  hint?: string,
+  hintCost?: number
 ): Promise<AddClueResult> {
   if (typeof window === "undefined") throw new Error("Browser environment required")
 
@@ -289,6 +293,8 @@ export async function addClue(
     question,
     answer: normalizedAnswer,
     points,
+    ...(hint ? { hint } : {}),
+    ...(hintCost ? { hint_cost: hintCost } : {}),
   })
   const key = `add_clue:${Date.now()}`
   const op = Operation.manageData({ name: key, value: payload })
@@ -387,6 +393,8 @@ export async function get_clue_info(huntId: number, clueId: number): Promise<Clu
       id: clue.id,
       question: clue.question,
       points: clue.points,
+      hint: clue.hint,
+      hintCost: clue.hintCost,
     }
   } catch (error) {
     throw normalizeHuntFetchError(error, "Failed to fetch clue")

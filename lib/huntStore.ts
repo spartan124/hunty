@@ -23,6 +23,8 @@ export interface Clue {
   question: string
   answer: string
   points: number
+  hint?: string
+  hintCost?: number
 }
 
 const STORAGE_KEY = "hunty_hunts"
