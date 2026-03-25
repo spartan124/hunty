@@ -1,6 +1,7 @@
-import Server, { TransactionBuilder, Networks, Operation } from "@stellar/stellar-sdk"
+import Server, { TransactionBuilder, Operation } from "@stellar/stellar-sdk"
 import { getHunt as getStoredHunt, getHuntClues } from "@/lib/huntStore"
 import { parseStellarError } from "@/lib/stellarErrors"
+import { SOROBAN_RPC_URL, NETWORK_PASSPHRASE } from "./config"
 
 export type ClueInfo = {
   id: number
@@ -100,8 +101,7 @@ export async function createHunt(
 ): Promise<CreateHuntResult> {
   if (typeof window === "undefined") throw new Error("Browser environment required")
 
-  const RPC = process.env.NEXT_PUBLIC_SOROBAN_RPC_URL || "https://rpc.testnet.soroban.stellar.org"
-  const server = new Server(RPC)
+  const server = new Server(SOROBAN_RPC_URL)
 
   const anyWin = window as Window & {
     freighter?: unknown
@@ -161,7 +161,7 @@ export async function createHunt(
 
   const tx = new TransactionBuilder(account, {
     fee: "100",
-    networkPassphrase: Networks.TESTNET,
+    networkPassphrase: NETWORK_PASSPHRASE,
   })
     .addOperation(op)
     .setTimeout(180)
@@ -200,8 +200,7 @@ export type ActivateHuntResult = {
 export async function activateHunt(huntId: number): Promise<ActivateHuntResult> {
   if (typeof window === "undefined") throw new Error("Browser environment required")
 
-  const RPC = process.env.NEXT_PUBLIC_SOROBAN_RPC_URL || "https://rpc.testnet.soroban.stellar.org"
-  const server = new Server(RPC)
+  const server = new Server(SOROBAN_RPC_URL)
 
   const win = window as Window & { freighter?: unknown; soroban?: unknown; sorobanWallet?: unknown }
   const wallet = win.freighter ?? win.soroban ?? win.sorobanWallet
@@ -234,7 +233,7 @@ export async function activateHunt(huntId: number): Promise<ActivateHuntResult> 
 
   const tx = new TransactionBuilder(account, {
     fee: "100",
-    networkPassphrase: Networks.TESTNET,
+    networkPassphrase: NETWORK_PASSPHRASE,
   })
     .addOperation(op)
     .setTimeout(180)
@@ -273,8 +272,7 @@ export async function addClue(
 ): Promise<AddClueResult> {
   if (typeof window === "undefined") throw new Error("Browser environment required")
 
-  const RPC = process.env.NEXT_PUBLIC_SOROBAN_RPC_URL || "https://rpc.testnet.soroban.stellar.org"
-  const server = new Server(RPC)
+  const server = new Server(SOROBAN_RPC_URL)
 
   const win = window as Window & { freighter?: unknown; soroban?: unknown; sorobanWallet?: unknown }
   const wallet = win.freighter ?? win.soroban ?? win.sorobanWallet
@@ -315,7 +313,7 @@ export async function addClue(
 
   const tx = new TransactionBuilder(account, {
     fee: "100",
-    networkPassphrase: Networks.TESTNET,
+    networkPassphrase: NETWORK_PASSPHRASE,
   })
     .addOperation(op)
     .setTimeout(180)
