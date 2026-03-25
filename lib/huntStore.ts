@@ -3,32 +3,9 @@
  * Persisted in localStorage so activated hunts appear in the arcade after refresh.
  */
 
-export type HuntStatus = "Active" | "Completed" | "Draft" | "Cancelled";
+import type { HuntStatus, StoredHunt, Clue } from "@/lib/types"
 
-export interface StoredHunt {
-  id: number
-  title: string
-  description: string
-  cluesCount: number
-  status: HuntStatus
-  rewardType: 'XLM' | 'NFT' | 'Both'
-  /** Unix timestamp in seconds — when the hunt starts. */
-  startTime?: number
-  /** Unix timestamp in seconds — when the hunt ends. */
-  endTime?: number
-  creatorEmail?: string
-  emailNotifications?: boolean
-}
-
-export interface Clue {
-  id: number
-  huntId: number
-  question: string
-  answer: string
-  points: number
-  hint?: string
-  hintCost?: number
-}
+export type { HuntStatus, StoredHunt, Clue }
 
 const STORAGE_KEY = "hunty_hunts"
 const CLUES_KEY = "hunty_clues"
@@ -138,7 +115,7 @@ export function getCreatorHunts(): StoredHunt[] {
 }
 
 /** Get hunts by creator public key (mock implementation) */
-export function getHuntsByCreator(publicKey: string): StoredHunt[] {
+export function getHuntsByCreator(publicKey?: string): StoredHunt[] {
   return readHunts()
 }
 
@@ -146,11 +123,6 @@ export function getHuntsByCreator(publicKey: string): StoredHunt[] {
 export function updateHuntStatus(huntId: number, status: HuntStatus): void {
   const hunts = readHunts().map((h) => (h.id === huntId ? { ...h, status } : h))
   writeHunts(hunts)
-}
-
-/** Get hunts for a specific creator */
-export function getHuntsByCreator(): StoredHunt[] {
-  return readHunts() // Mock: returning all for now as we don't have creator mapping yet
 }
 
 /** Get a single hunt by ID */
@@ -179,11 +151,6 @@ export function saveClueLocally(clue: Omit<Clue, "id">): void {
     h.id === clue.huntId ? { ...h, cluesCount: h.cluesCount + 1 } : h
   )
   writeHunts(hunts)
-}
-
-/** Get a single hunt by numeric ID */
-export function getHuntById(id: number) {
-  return readHunts().find((h) => h.id === id)
 }
 
 /** Get a single hunt by string ID */
