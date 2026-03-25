@@ -117,13 +117,16 @@ function isCreator(
     connectedPublicKey?: string
 ): boolean {
     if (!connectedPublicKey) return false
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!(hunt as any).creator) return true
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (hunt as any).creator === connectedPublicKey
 }
 
 interface CancelModalProps {
     isOpen: boolean
     huntTitle: string
+    huntId: number
     isCancelling: boolean
     onClose: () => void
     onConfirmFirst: () => void   // step 1 → move to step 2
@@ -134,6 +137,7 @@ interface CancelModalProps {
 function CancelModal({
     isOpen,
     huntTitle,
+    huntId,
     isCancelling,
     onClose,
     onConfirmFirst,
@@ -157,7 +161,7 @@ function CancelModal({
                     <div className="space-y-4">
                         <p className="text-zinc-300 text-sm leading-relaxed">
                             You are about to cancel{" "}
-                            <span className="font-semibold text-white">"{huntTitle}"</span>.
+                            <span className="font-semibold text-white">&quot;{huntTitle}&quot;</span>.
                             This will remove it from the active hunts list and cannot be undone.
                         </p>
                         <ul className="text-xs text-zinc-500 space-y-1 list-disc list-inside">
@@ -189,7 +193,8 @@ function CancelModal({
                             </span>
                             This action will call{" "}
                             <code className="bg-red-900/50 px-1 rounded text-red-200 text-xs">
-                                cancel_hunt({(huntTitle as any)?.id ?? "…"})
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                cancel_hunt({huntId})
                             </code>{" "}
                             on the Soroban contract. Once submitted to the blockchain it{" "}
                             <span className="font-semibold text-white">cannot be reversed</span>.
@@ -288,6 +293,7 @@ export function HuntControls({
             <CancelModal
                 isOpen={modalOpen}
                 huntTitle={hunt.title}
+                huntId={hunt.id}
                 isCancelling={isCancelling}
                 onClose={closeModal}
                 onConfirmFirst={handleConfirmFirst}

@@ -187,7 +187,7 @@ export default function HuntShare({ hunt }: HuntDetailProps) {
         <HuntControls
           hunt={hunt}
           connectedPublicKey={connectedPublicKey}
-          onCancelled={(huntId, txHash) => {
+          onCancelled={(huntId) => {
             markHuntCancelled(huntId)
             router.push("/hunts")
           }}

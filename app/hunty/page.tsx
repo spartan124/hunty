@@ -1,6 +1,6 @@
 "use client"
 
-import { ReactNode, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { useLocalStorage } from "@/hooks/useLocalStorage"
@@ -25,7 +25,6 @@ import { PlayGame } from "@/components/PlayGame"
 import Share from "@/components/icons/Share"
 import PlayCircle from "@/components/icons/PlayCircle"
 import ToggleButton from "@/components/ToggleButton"
-import Replay from "@/components/icons/Replay"
 import Medal from "@/components/icons/Medal"
 import { Reward } from "@/components/RewardsPanel"
 import {
@@ -50,12 +49,7 @@ interface Hunt {
 //   icon: ReactNode
 // }
 
-interface LeaderboardEntry {
-  position: number;
-  name: string;
-  points: number;
-  icon: ReactNode;
-}
+
 
 export default function CreateGame() {  
   const [activeTab, setActiveTab] = useState<"create" | "rewards" | "publish" | "leaderboard">("create")
@@ -79,20 +73,14 @@ export default function CreateGame() {
       navigator.clipboard.writeText(window.location.href)
     }
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isPublishing, setIsPublishing] = useState(false);
-  const [huntId, setHuntId] = useState<number>(1); // Default to 1 for preview
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get("tab");
-      const hId = params.get("huntId");
       if (tab === "publish" || tab === "rewards" || tab === "create") {
-        setActiveTab(tab as any);
-      }
-      if (hId) {
-        setHuntId(parseInt(hId, 10));
+        setActiveTab(tab as "publish" | "rewards" | "create");
       }
     }
   }, []);
@@ -146,13 +134,7 @@ export default function CreateGame() {
     : validationResult.error.flatten().fieldErrors;
   const isFormValid = validationResult.success;
 
-  const leaderboardData: LeaderboardEntry[] = [
-    { position: 1, name: "JohnDoe", points: 9, icon: <Medal position={1} /> },
-    { position: 2, name: "TDH", points: 6, icon: <Medal position={2} /> },
-    { position: 3, name: "User904", points: 5, icon: <Medal position={3} /> },
-    { position: 4, name: "0xE394fd1329g3a3wh23fH", points: 4, icon: <Medal /> },
-    { position: 5, name: "JohnDoe", points: 3, icon: <Medal /> },
-  ];
+
 
   const addReward = () => {
     setRewards([
@@ -253,9 +235,7 @@ export default function CreateGame() {
     }
   };
 
-  const handleTest = () => {
-    setIsPlaying(true);
-  };
+
 
   if (isPlaying) {
     return (
@@ -565,7 +545,7 @@ export default function CreateGame() {
                     </Button>
                     <Button
                       onClick={() => setShowPublishModal(true)}
-                      disabled={!isFormValid}
+                      disabled={!isFormValid || isPublishing}
                       className="bg-gradient-to-b from-[#39A437] to-[#194F0C] hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xl px-6 py-3 rounded-lg flex items-center gap-2"
                     >
                       <span>
